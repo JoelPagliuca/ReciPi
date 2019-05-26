@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Swashbuckle.AspNetCore.Swagger;
 
 using recipi.Data;
 
@@ -41,6 +42,11 @@ namespace recipi
 			services.AddDbContext<RecipiDbContext>(options => options.UseNpgsql(connectionString));
 
 			services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+			services.AddSwaggerGen(c =>
+			{
+				c.SwaggerDoc("v1", new Info { Title = "Recipi API", Version = "v1" });
+			});
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,7 +58,13 @@ namespace recipi
 				// Apply database migrations automatically, but only when in non-prod.
 				using (var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
 				{
-					scope.ServiceProvider.GetService<RecipiDbContext>().Database.Migrate();
+					var dbCtx = scope.ServiceProvider.GetService<RecipiDbContext>();
+					dbCtx.Database.Migrate();
+					if (SeedHelper.SeedRequired(dbCtx))
+					{
+						_logger.LogInformation("Seeding non-prod database");
+						SeedHelper.SeedDummyData(dbCtx);
+					}
 				}
 			}
 			else
@@ -60,6 +72,12 @@ namespace recipi
 				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 				app.UseHsts();
 			}
+
+			app.UseSwagger();
+			app.UseSwaggerUI(c =>
+			{
+				c.SwaggerEndpoint("/swagger/v1/swagger.json", "Recipi API");
+			});
 
 			app.UseHttpsRedirection();
 			app.UseAuthentication();

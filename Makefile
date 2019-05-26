@@ -5,9 +5,6 @@ NAME := recipi.dll
 DB_CONTAINER_NAME := recipi_db
 DB_CONTAINER_ID := $(shell docker ps -af "name=recipi_db" --format '{{.ID}}')
 
-DB_USER := recipi
-DB_NAME := recipi
-
 help: ## Print this message and exit
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
