@@ -22,9 +22,11 @@ namespace recipi
 {
 	public class Startup
 	{
-		public Startup(IConfiguration configuration)
+		private readonly ILogger _logger;
+		public Startup(IConfiguration configuration, ILogger<Startup> logger)
 		{
 			Configuration = configuration;
+			_logger = logger;
 		}
 
 		public IConfiguration Configuration { get; }
@@ -35,7 +37,7 @@ namespace recipi
 			services.AddAuthentication(AzureADB2CDefaults.BearerAuthenticationScheme)
 				.AddAzureADB2CBearer(options => Configuration.Bind("AzureAdB2C", options));
 
-			var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+			var connectionString = Configuration["DB:ConnectionString"];
 			services.AddDbContext<RecipiDbContext>(options => options.UseNpgsql(connectionString));
 
 			services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
@@ -47,7 +49,7 @@ namespace recipi
 			if (env.IsDevelopment())
 			{
 				app.UseDeveloperExceptionPage();
-				// Apply database migrations automatically, but only when in Staging.
+				// Apply database migrations automatically, but only when in non-prod.
 				using (var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
 				{
 					scope.ServiceProvider.GetService<RecipiDbContext>().Database.Migrate();
