@@ -25,7 +25,7 @@ services:
       - '5432'
     restart: always
     volumes:
-      - db_volume:/var/lib/postgresql/data
+      - ./db_volume:/var/lib/postgresql/data
     env_file: 
      - Secrets/db.env
 
