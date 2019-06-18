@@ -22,8 +22,18 @@ namespace recipi.Data
 			{
 				var w1 = recipeWord1[random.Next(recipeWord1.Length)];
 				var w2 = recipeWord2[random.Next(recipeWord2.Length)];
-				var r = new Recipe{
-					Name	= $"{w1} {w2}"
+				var steps = new List<Step>();
+				for (int j = 0; j < random.Next(5); j++)
+				{
+					steps.Add(new Step {
+						Number		= j,
+						Amount		= random.Next(10),
+						Instruction	= w1
+					});
+				}
+				var r = new Recipe {
+					Name	= $"{w1} {w2}",
+					Steps	= steps
 				};
 				context.Recipes.Add(r);
 			}

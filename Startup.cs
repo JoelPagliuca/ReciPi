@@ -41,7 +41,11 @@ namespace recipi
 			var connectionString = Configuration["DB:ConnectionString"];
 			services.AddDbContext<RecipiDbContext>(options => options.UseNpgsql(connectionString));
 
-			services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+			services.AddMvc()
+				.SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+				.AddJsonOptions(
+					options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+				);
 
 			services.AddSwaggerGen(c =>
 			{
