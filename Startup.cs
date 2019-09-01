@@ -1,20 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.AzureADB2C.UI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
-using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Swashbuckle.AspNetCore.Swagger;
 
 using recipi.Data;
@@ -35,8 +27,12 @@ namespace recipi
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services.AddAuthentication(AzureADB2CDefaults.BearerAuthenticationScheme)
-				.AddAzureADB2CBearer(options => Configuration.Bind("AzureAdB2C", options));
+			services.AddCors(options =>
+			{
+				options.AddPolicy("EnableCors", builder => {
+					builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+				});
+			});
 
 			var connectionString = Configuration["DB:ConnectionString"];
 			services.AddDbContext<RecipiDbContext>(options => options.UseNpgsql(connectionString));
@@ -46,6 +42,23 @@ namespace recipi
 				.AddJsonOptions(
 					options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
 				);
+			
+			
+			services.AddAuthentication(options => 
+			{
+				// options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+				// options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+				options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+			})
+				.AddCookie()
+				.AddGoogle(ops => 
+			{
+				IConfigurationSection googleAuthConfig = Configuration.GetSection("Authentication:Google");
+				ops.ClientId = googleAuthConfig["ClientId"];
+				ops.ClientSecret = googleAuthConfig["ClientSecret"];
+			});
+
 
 			services.AddSwaggerGen(c =>
 			{
@@ -84,6 +97,7 @@ namespace recipi
 			});
 
 			app.UseHttpsRedirection();
+			app.UseCors("EnableCors");
 			app.UseAuthentication();
 			app.UseMvc();
 		}

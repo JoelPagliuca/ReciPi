@@ -21,6 +21,7 @@ install: ## Install dotnet dependencies
 init-env: ## Create secrets
 	@echo "+ $@"
 	./Deployment/init-env.sh
+	@echo "Authentication:Google:ClientSecret \nAuthentication:Google:ClientId" # TODO
 
 start-db: ## Runs a postgresql db in a container
 	@echo "+ $@"
@@ -56,7 +57,7 @@ endif
 clobber: clean ## Destroy everything
 	@echo "+ $@"
 	rm -f Secrets/*.env
-	dotnet user-secrets clear
+	dotnet user-secrets remove "DB:ConnectionString"
 ifneq ($(DB_CONTAINER_ID),)
 	@docker rm $(DB_CONTAINER_NAME)
 endif
