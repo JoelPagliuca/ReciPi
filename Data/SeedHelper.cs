@@ -9,7 +9,7 @@ namespace recipi.Data
 {
 	public class SeedHelper
 	{
-		// Gimme some non-prod data
+		// Gimme some non-prod data please
 		public static void SeedDummyData(RecipiDbContext context, int numberOfRecipes = 40)
 		{
 			Random random = new Random();
